@@ -253,7 +253,7 @@ even if you never replay.
 - [x] v0.2 — fuzzy matcher tier (ISO timestamps · UUIDs · id-shaped keys)
 - [x] v0.3 — `inspect` and `diff` commands
 - [ ] v0.4 — HTTP/SSE transport support
-- [ ] v0.5 — pluggable matcher API for user-supplied strategies
+- [x] v0.5 — pluggable matcher API (`UserMatcher` callback consulted before built-in tiers)
 - [ ] v1.0 — used in `erphq/neo` and `erphq/enterprise-skills` test suites
 
 ## ✦ Topics
