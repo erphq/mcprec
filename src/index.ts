@@ -1,5 +1,10 @@
 export { record } from "./record.js";
-export { replay, loadTranscript, pairFrames } from "./replay.js";
+export {
+  replay,
+  loadTranscript,
+  pairFrames,
+  pairFramesStreamed,
+} from "./replay.js";
 export {
   exactMatch,
   fuzzyMatch,
@@ -32,6 +37,7 @@ export type {
   JsonRpcNotification,
   JsonRpcResponse,
   ReplayPair,
+  StreamedReplayPair,
   MatchStrategy,
   UserMatcher,
 } from "./types.js";

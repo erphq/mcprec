@@ -51,3 +51,14 @@ export interface ReplayPair {
   request: JsonRpcMessage;
   response: JsonRpcMessage;
 }
+
+/**
+ * A request paired with every response frame it produced. Used by
+ * the HTTP transport when serving SSE: a single client POST can fan
+ * out into multiple server-side messages (progress notifications, a
+ * final response). For non-streaming requests, `responses` has length 1.
+ */
+export interface StreamedReplayPair {
+  request: JsonRpcMessage;
+  responses: JsonRpcMessage[];
+}

@@ -6,6 +6,7 @@ import type {
   JsonRpcMessage,
   JsonRpcRequest,
   ReplayPair,
+  StreamedReplayPair,
   UserMatcher,
 } from "./types.js";
 
@@ -38,6 +39,41 @@ export function pairFrames(frames: Frame[]): ReplayPair[] {
         pairs.push({ request: f.msg, response: g.msg });
         break;
       }
+    }
+  }
+  return pairs;
+}
+
+/**
+ * Pair every recorded → request with EVERY ← frame between it and
+ * the next → request, scoped to messages whose id matches the request
+ * (and notifications, which have no id). Used by the HTTP transport
+ * to recover SSE streams from the transcript.
+ *
+ * For non-streaming requests, the resulting `responses` has length 1
+ * and behaves identically to `pairFrames`.
+ */
+export function pairFramesStreamed(frames: Frame[]): StreamedReplayPair[] {
+  const pairs: StreamedReplayPair[] = [];
+  for (let i = 0; i < frames.length; i++) {
+    const f = frames[i];
+    if (!f || f.dir !== "→" || !isRequest(f.msg)) continue;
+    const id = (f.msg as JsonRpcRequest).id;
+    const responses: JsonRpcMessage[] = [];
+    for (let j = i + 1; j < frames.length; j++) {
+      const g = frames[j];
+      if (!g) continue;
+      if (g.dir === "→") break;
+      if (g.dir !== "←") continue;
+      const gid = (g.msg as { id?: unknown }).id;
+      // Include direct responses (id matches) AND server-pushed
+      // notifications interleaved in the same SSE stream (no id).
+      if (gid === id || gid === undefined) {
+        responses.push(g.msg);
+      }
+    }
+    if (responses.length > 0) {
+      pairs.push({ request: f.msg, responses });
     }
   }
   return pairs;
