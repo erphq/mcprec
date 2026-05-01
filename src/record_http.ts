@@ -68,12 +68,17 @@ export async function recordHttp(
   const redact = opts.redact ?? [];
   let captured = 0;
 
-  const append = (dir: "→" | "←", msg: JsonRpcMessage): void => {
+  const append = (dir: "→" | "←", msg: JsonRpcMessage): Promise<void> => {
     const safe =
       redact.length > 0 ? (redactDeep(msg, redact) as JsonRpcMessage) : msg;
     const frame: Frame = { t: (Date.now() - start) / 1000, dir, msg: safe };
-    file.write(JSON.stringify(frame) + "\n");
     captured += 1;
+    return new Promise<void>((resolve, reject) => {
+      file.write(JSON.stringify(frame) + "\n", (err) => {
+        if (err) reject(err);
+        else resolve();
+      });
+    });
   };
 
   const server = createServer((req, res) => {
@@ -106,7 +111,7 @@ async function handle(
   opts: RecordHttpOptions,
   fetchFn: typeof globalThis.fetch,
   path: string,
-  append: (dir: "→" | "←", msg: JsonRpcMessage) => void,
+  append: (dir: "→" | "←", msg: JsonRpcMessage) => Promise<void>,
 ): Promise<void> {
   if (req.method === "GET" && req.url === "/health") {
     res.statusCode = 200;
@@ -129,7 +134,7 @@ async function handle(
   const body = await readBody(req);
   try {
     const parsed = JSON.parse(body) as JsonRpcMessage;
-    append("→", parsed);
+    await append("→", parsed);
   } catch {
     // Forward anyway - let the target return its own parse error.
   }
@@ -151,12 +156,12 @@ async function handle(
 async function proxyJson(
   res: ServerResponse,
   targetRes: Response,
-  append: (dir: "→" | "←", msg: JsonRpcMessage) => void,
+  append: (dir: "→" | "←", msg: JsonRpcMessage) => Promise<void>,
 ): Promise<void> {
   const text = await targetRes.text();
   try {
     const msg = JSON.parse(text) as JsonRpcMessage;
-    append("←", msg);
+    await append("←", msg);
   } catch {
     // Not JSON - passed through, not captured.
   }
@@ -170,7 +175,7 @@ async function proxyJson(
 async function proxySse(
   res: ServerResponse,
   targetRes: Response,
-  append: (dir: "→" | "←", msg: JsonRpcMessage) => void,
+  append: (dir: "→" | "←", msg: JsonRpcMessage) => Promise<void>,
 ): Promise<void> {
   res.statusCode = targetRes.status;
   res.setHeader("content-type", "text/event-stream; charset=utf-8");
@@ -202,7 +207,7 @@ async function proxySse(
       if (dataLines.length === 0) continue;
       const text = dataLines.join("\n");
       try {
-        append("←", JSON.parse(text) as JsonRpcMessage);
+        await append("←", JSON.parse(text) as JsonRpcMessage);
       } catch {
         // Non-JSON SSE event - forwarded but not captured.
       }
