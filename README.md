@@ -252,7 +252,8 @@ even if you never replay.
 - [x] v0.1 — record/replay for stdio MCP, exact `(method, params)` match, secret redaction on record
 - [x] v0.2 — fuzzy matcher tier (ISO timestamps · UUIDs · id-shaped keys)
 - [x] v0.3 — `inspect` and `diff` commands
-- [x] v0.4 — HTTP transport replay (JSON-only; SSE/streaming deferred to v0.4.1)
+- [x] v0.4 — HTTP transport replay (JSON request → JSON response)
+- [x] v0.4.1 — SSE streaming for HTTP replay (auto-detect multi-frame responses; `streaming: 'auto' \| 'off'`)
 - [x] v0.5 — pluggable matcher API (`UserMatcher` callback consulted before built-in tiers)
 - [ ] v1.0 — used in `erphq/neo` and `erphq/enterprise-skills` test suites
 
