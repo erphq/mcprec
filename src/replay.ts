@@ -6,6 +6,7 @@ import type {
   JsonRpcMessage,
   JsonRpcRequest,
   ReplayPair,
+  UserMatcher,
 } from "./types.js";
 
 export async function loadTranscript(file: string): Promise<Frame[]> {
@@ -45,6 +46,13 @@ export function pairFrames(frames: Frame[]): ReplayPair[] {
 export interface ReplayOptions {
   file: string;
   onMismatch?: (request: JsonRpcRequest) => void;
+  /**
+   * User-supplied matcher. Consulted before the built-in tiers; if it
+   * returns true for any pair, that pair wins (with strategy "user").
+   * Useful for protocol-specific equivalence rules the built-in tiers
+   * don't know about.
+   */
+  userMatcher?: UserMatcher;
 }
 
 /**
@@ -67,7 +75,7 @@ export async function replay(opts: ReplayOptions): Promise<void> {
     if (!isRequest(req)) continue;
 
     const reqAsReq = req as JsonRpcRequest;
-    const m = findMatch(req, pairs);
+    const m = findMatch(req, pairs, { userMatcher: opts.userMatcher });
     if (m === null) {
       opts.onMismatch?.(reqAsReq);
       const err = {

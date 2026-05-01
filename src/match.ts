@@ -3,6 +3,7 @@ import type {
   JsonRpcRequest,
   MatchStrategy,
   ReplayPair,
+  UserMatcher,
 } from "./types.js";
 
 export function isRequest(m: JsonRpcMessage): m is JsonRpcRequest {
@@ -156,10 +157,24 @@ export interface MatchResult {
   strategy: MatchStrategy;
 }
 
+export interface FindMatchOptions {
+  /** Optional user-supplied matcher; consulted before built-in tiers. */
+  userMatcher?: UserMatcher;
+}
+
 export function findMatch(
   request: JsonRpcMessage,
   pairs: ReplayPair[],
+  opts: FindMatchOptions = {},
 ): MatchResult | null {
+  if (opts.userMatcher) {
+    for (let i = 0; i < pairs.length; i++) {
+      const p = pairs[i];
+      if (p && opts.userMatcher(request, p)) {
+        return { idx: i, strategy: "user" };
+      }
+    }
+  }
   for (let i = 0; i < pairs.length; i++) {
     const p = pairs[i];
     if (p && exactMatch(request, p.request)) {

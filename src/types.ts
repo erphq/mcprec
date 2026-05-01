@@ -35,7 +35,17 @@ export interface Frame {
   msg: JsonRpcMessage;
 }
 
-export type MatchStrategy = "exact" | "normalized" | "fuzzy";
+export type MatchStrategy = "exact" | "normalized" | "fuzzy" | "user";
+
+/**
+ * User-supplied matcher. Returns `true` to claim a recorded pair as
+ * a match for the incoming request, `false` to defer to the built-in
+ * tiers.
+ */
+export type UserMatcher = (
+  request: JsonRpcMessage,
+  recorded: ReplayPair,
+) => boolean;
 
 export interface ReplayPair {
   request: JsonRpcMessage;

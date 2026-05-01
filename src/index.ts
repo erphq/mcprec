@@ -31,4 +31,6 @@ export type {
   JsonRpcResponse,
   ReplayPair,
   MatchStrategy,
+  UserMatcher,
 } from "./types.js";
+export type { FindMatchOptions } from "./match.js";
