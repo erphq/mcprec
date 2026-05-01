@@ -249,11 +249,11 @@ even if you never replay.
 ## ✦ Roadmap
 
 - [x] v0.0 — scaffold, design, schema
-- [ ] v0.1 — record/replay for stdio MCP, exact `(method, params)` match
-- [ ] v0.2 — fuzzy match (drop monotonic ids, normalize timestamps)
-- [ ] v0.3 — `inspect` and `diff` commands
+- [x] v0.1 — record/replay for stdio MCP, exact `(method, params)` match, secret redaction on record
+- [x] v0.2 — fuzzy matcher tier (ISO timestamps · UUIDs · id-shaped keys)
+- [x] v0.3 — `inspect` and `diff` commands
 - [ ] v0.4 — HTTP/SSE transport support
-- [ ] v0.5 — secret redaction on record (`--redact` patterns)
+- [ ] v0.5 — pluggable matcher API for user-supplied strategies
 - [ ] v1.0 — used in `erphq/neo` and `erphq/enterprise-skills` test suites
 
 ## ✦ Topics
