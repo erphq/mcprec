@@ -18,31 +18,11 @@ replays that transcript later as a fake server. The result:
 deterministic, network-free, billing-free fixtures for agent tests
 that would otherwise be flaky against a live API.
 
-> **The thesis.** Agent tests are flaky because tools are flaky - the
-> Linear API hiccups, GitHub rate-limits, the Slack workspace changes
-> overnight. The way out is the same as for HTTP: record once against
-> a real server, replay forever, only re-record when the contract
-> actually changes. `mcprec` is VCR for MCP.
+## Why
 
----
+Tests against real MCP tools are flaky for the same three reasons every external-service integration test is flaky: network blips fail CI runs that have nothing to do with the code under test, parallel runs exhaust API rate limits, and remote contracts drift overnight (a field gets renamed, the test that passed Tuesday breaks Wednesday).
 
-## ✦ The flakiness problem
-
-Tests for agent tools have three failure modes:
-
-1. **Network flakes.** The remote service blips; your CI run fails for
-   reasons unrelated to your code.
-2. **Rate limits.** Many runs in parallel exhaust quota.
-3. **Drift.** A field gets renamed remotely; tests pass on Tuesday,
-   fail on Wednesday.
-
-Mocking the tool fixes (1) and (2) but makes (3) silent: your mock
-returns what you *think* the server returns. By the time it diverges,
-your tests are validating fiction.
-
-`mcprec` captures the actual wire bytes once, then replays them. Tests
-are deterministic. Drift is detected (replay fails when a method/params
-combo no longer matches the recording). Re-recording is one command.
+Hand-written mocks fix the first two but quietly worsen the third: a mock returns what the test author *believes* the server returns, and by the time those beliefs diverge from reality the tests are validating fiction. The HTTP world solved this with record-and-replay tools like VCR. `mcprec` does the same for MCP: capture the actual wire bytes once against a real server, replay them forever, fail loudly when a method/params combo no longer matches the recording, and re-record with one command when the contract genuinely changed.
 
 ## ✦ Install
 
@@ -111,7 +91,7 @@ timestamp + the original message:
 Plain text. Diffable in PRs. Hand-editable when you need to redact a
 token. Friendly to git, friendly to humans, friendly to CI.
 
-## ✦ Why not just mock?
+## ✦ vs. mocks and snapshot tests
 
 | | Mock | Snapshot tests | `mcprec` |
 |---|---|---|---|
@@ -121,10 +101,7 @@ token. Friendly to git, friendly to humans, friendly to CI.
 | Setup cost | High (write the mock) | Medium | Low (just run once) |
 | Wire-level fidelity | None | Output only | Full JSON-RPC |
 
-Mocks lie. They drift. They encode what the test author *thinks* the
-server returns, not what it actually returns. Snapshot tests catch some
-of that but only at the result level, not the protocol level. `mcprec`
-captures the whole conversation.
+Hand-written mocks encode what the test author thinks the server returns. Snapshot tests pin the result of one call but not the wire conversation that produced it. `mcprec` captures the whole conversation, byte-for-byte, and replays it.
 
 ## ✦ Worked example
 
