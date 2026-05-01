@@ -131,7 +131,7 @@ async function handle(
     const parsed = JSON.parse(body) as JsonRpcMessage;
     append("→", parsed);
   } catch {
-    // Forward anyway — let the target return its own parse error.
+    // Forward anyway - let the target return its own parse error.
   }
 
   const targetRes = await fetchFn(opts.target, {
@@ -158,7 +158,7 @@ async function proxyJson(
     const msg = JSON.parse(text) as JsonRpcMessage;
     append("←", msg);
   } catch {
-    // Not JSON — passed through, not captured.
+    // Not JSON - passed through, not captured.
   }
   res.statusCode = targetRes.status;
   for (const [k, v] of targetRes.headers.entries()) {
@@ -204,7 +204,7 @@ async function proxySse(
       try {
         append("←", JSON.parse(text) as JsonRpcMessage);
       } catch {
-        // Non-JSON SSE event — forwarded but not captured.
+        // Non-JSON SSE event - forwarded but not captured.
       }
     }
   }

@@ -83,7 +83,7 @@ async function readSseEvents(res: Response): Promise<string[]> {
   return events;
 }
 
-describe("replayHttp — SSE streaming (v0.4.1)", () => {
+describe("replayHttp - SSE streaming (v0.4.1)", () => {
   let handle: HttpReplayHandle;
   let baseUrl: string;
 

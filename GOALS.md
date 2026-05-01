@@ -18,7 +18,7 @@ VCR/cassette is to HTTP libraries.
 
 ## Architecture decisions
 - TypeScript, Node 20+. Stdio piping via `node:child_process`.
-- Transcript is JSONL, not protobuf — diff-friendliness > size.
+- Transcript is JSONL, not protobuf - diff-friendliness > size.
 - Replay matcher is layered: exact → fuzzy → user-supplied.
 
 ## Non-goals

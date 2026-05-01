@@ -72,7 +72,7 @@ function passthroughIn(
     const safe = redact.length > 0 ? (redactDeep(msg, redact) as JsonRpcMessage) : msg;
     append({ t: (Date.now() - start) / 1000, dir: "→", msg: safe });
   } catch {
-    // not JSON — passed through, not recorded
+    // not JSON - passed through, not recorded
   }
 }
 
@@ -88,6 +88,6 @@ function passthroughOut(
     const safe = redact.length > 0 ? (redactDeep(msg, redact) as JsonRpcMessage) : msg;
     append({ t: (Date.now() - start) / 1000, dir: "←", msg: safe });
   } catch {
-    // not JSON — passed through, not recorded
+    // not JSON - passed through, not recorded
   }
 }

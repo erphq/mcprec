@@ -49,7 +49,7 @@ function tmpFile(): string {
   return join(mkdtempSync(join(tmpdir(), "mcprec-record-")), "fixture.jsonl");
 }
 
-describe("recordHttp — JSON path", () => {
+describe("recordHttp - JSON path", () => {
   let target: { server: Server; url: string };
   let handle: RecordHttpHandle;
   let out: string;
@@ -86,7 +86,7 @@ describe("recordHttp — JSON path", () => {
   });
 });
 
-describe("recordHttp — SSE path", () => {
+describe("recordHttp - SSE path", () => {
   it("captures one → and N ← frames for an SSE response", async () => {
     const target = await startTarget({
       sseEvents: [
@@ -118,7 +118,7 @@ describe("recordHttp — SSE path", () => {
   });
 });
 
-describe("recordHttp — health + routing", () => {
+describe("recordHttp - health + routing", () => {
   it("serves /health", async () => {
     const target = await startTarget();
     const out = tmpFile();

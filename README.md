@@ -18,7 +18,7 @@ replays that transcript later as a fake server. The result:
 deterministic, network-free, billing-free fixtures for agent tests
 that would otherwise be flaky against a live API.
 
-> **The thesis.** Agent tests are flaky because tools are flaky — the
+> **The thesis.** Agent tests are flaky because tools are flaky - the
 > Linear API hiccups, GitHub rate-limits, the Slack workspace changes
 > overnight. The way out is the same as for HTTP: record once against
 > a real server, replay forever, only re-record when the contract
@@ -63,7 +63,7 @@ mcprec record --out fixtures/github.jsonl -- \
 
 Your agent talks to the real `server-github` over stdio; every JSON-RPC
 frame in both directions lands in `github.jsonl`. The MCP server runs
-exactly as it would normally — no proxy URL, no certificate
+exactly as it would normally - no proxy URL, no certificate
 shenanigans, nothing for it to detect.
 
 ### Replay
@@ -189,10 +189,10 @@ The default matcher is exact `(method, params)` equality after
 normalizing whitespace and key order. Real-world recordings are noisier;
 `mcprec` ships layered matchers:
 
-1. **Exact** — strict equality
-2. **Normalized** — drop monotonic ids, normalize timestamps, sort keys
-3. **Schema-loose** — match `(method, paramsKeys)` only
-4. **User-supplied** — pass a `match: (req, recorded) => boolean` function
+1. **Exact** - strict equality
+2. **Normalized** - drop monotonic ids, normalize timestamps, sort keys
+3. **Schema-loose** - match `(method, paramsKeys)` only
+4. **User-supplied** - pass a `match: (req, recorded) => boolean` function
 
 `replay` walks the strategies in order; the first match wins.
 
@@ -214,7 +214,7 @@ Belt and suspenders: review your transcript before committing.
 |---|---|
 | Hand-editing transcripts to add new responses | Loses the "real once" property; you're back to mocking |
 | Recording in production with real user data | Now your fixture is a privacy liability |
-| One giant transcript per repo | Brittle — any contract change invalidates the whole file |
+| One giant transcript per repo | Brittle - any contract change invalidates the whole file |
 | Exact matching with monotonic IDs | Replay fails on the second run because IDs incremented |
 
 ## ✦ Non-goals
@@ -227,7 +227,7 @@ Belt and suspenders: review your transcript before committing.
 ## ✦ FAQ
 
 **Q: My MCP server is non-deterministic (random IDs, timestamps). How do I match?**
-A: Use the `Normalized` matcher (default) — it strips monotonic ids and
+A: Use the `Normalized` matcher (default) - it strips monotonic ids and
 normalizes timestamps. For deeper non-determinism, supply a custom
 matcher.
 
@@ -236,27 +236,27 @@ A: Re-run `record`. The diff against the old fixture is what your PR
 reviews.
 
 **Q: Does this work with HTTP-transport MCP servers?**
-A: Not in v0.1 — stdio only. v0.4 adds HTTP/SSE.
+A: Not in v0.1 - stdio only. v0.4 adds HTTP/SSE.
 
 **Q: Why JSONL instead of a binary format?**
 A: Diff-friendliness. Test fixtures live in git, get reviewed in PRs,
 get hand-edited to redact secrets. Plain text wins.
 
 **Q: Can I use `mcprec` to debug a flaky MCP server?**
-A: Yes — `record` followed by `inspect` is a useful diagnostic flow,
+A: Yes - `record` followed by `inspect` is a useful diagnostic flow,
 even if you never replay.
 
 ## ✦ Roadmap
 
-- [x] v0.0 — scaffold, design, schema
-- [x] v0.1 — record/replay for stdio MCP, exact `(method, params)` match, secret redaction on record
-- [x] v0.2 — fuzzy matcher tier (ISO timestamps · UUIDs · id-shaped keys)
-- [x] v0.3 — `inspect` and `diff` commands
-- [x] v0.4 — HTTP transport replay (JSON request → JSON response)
-- [x] v0.4.1 — SSE streaming for HTTP replay (auto-detect multi-frame responses; `streaming: 'auto' \| 'off'`)
-- [x] v0.4.2 — HTTP record-mode proxy (`mcprec record-http --target`); transcripts byte-compatible with stdio recording
-- [x] v0.5 — pluggable matcher API (`UserMatcher` callback consulted before built-in tiers)
-- [ ] v1.0 — used in `erphq/neo` and `erphq/enterprise-skills` test suites
+- [x] v0.0 - scaffold, design, schema
+- [x] v0.1 - record/replay for stdio MCP, exact `(method, params)` match, secret redaction on record
+- [x] v0.2 - fuzzy matcher tier (ISO timestamps · UUIDs · id-shaped keys)
+- [x] v0.3 - `inspect` and `diff` commands
+- [x] v0.4 - HTTP transport replay (JSON request → JSON response)
+- [x] v0.4.1 - SSE streaming for HTTP replay (auto-detect multi-frame responses; `streaming: 'auto' \| 'off'`)
+- [x] v0.4.2 - HTTP record-mode proxy (`mcprec record-http --target`); transcripts byte-compatible with stdio recording
+- [x] v0.5 - pluggable matcher API (`UserMatcher` callback consulted before built-in tiers)
+- [ ] v1.0 - used in `erphq/neo` and `erphq/enterprise-skills` test suites
 
 ## ✦ Topics
 
@@ -266,4 +266,4 @@ even if you never replay.
 
 ## ✦ License
 
-MIT — see [LICENSE](./LICENSE).
+MIT - see [LICENSE](./LICENSE).

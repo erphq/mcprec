@@ -42,7 +42,7 @@ const DEFAULT_PATH = "/mcp";
 /**
  * Start an HTTP server that replays a recorded transcript. Single
  * JSON-RPC request → single JSON response. Streaming/SSE responses
- * are not in v0.4 — they ship in v0.4.1.
+ * are not in v0.4 - they ship in v0.4.1.
  *
  * The server is bound to localhost by default. Pass `host` to bind
  * elsewhere.
