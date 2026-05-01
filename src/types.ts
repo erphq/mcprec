@@ -35,7 +35,7 @@ export interface Frame {
   msg: JsonRpcMessage;
 }
 
-export type MatchStrategy = "exact" | "normalized";
+export type MatchStrategy = "exact" | "normalized" | "fuzzy";
 
 export interface ReplayPair {
   request: JsonRpcMessage;

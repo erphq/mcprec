@@ -79,6 +79,53 @@ export function normalizedMatch(
   );
 }
 
+const ISO_TIMESTAMP =
+  /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?(Z|[+-]\d{2}:?\d{2})?$/;
+const UUID =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ID_KEY = /^(id|requestId|traceId|spanId|correlationId|sessionId)$/i;
+
+/**
+ * Stronger normalization than `stripVolatile`:
+ *   - drops the same volatile keys as `stripVolatile`
+ *   - replaces ISO 8601 timestamp values with `<TIMESTAMP>`
+ *   - replaces UUID values with `<UUID>`
+ *   - replaces values under id-shaped keys with `<ID>` regardless of type
+ *
+ * This is the layer that lets `replay` survive monotonic counters,
+ * generated UUIDs, and clock-derived values that vary per run.
+ */
+function fuzzifyDeep(v: unknown): unknown {
+  if (v === null || v === undefined) return v;
+  if (Array.isArray(v)) return v.map(fuzzifyDeep);
+  if (typeof v === "object") {
+    const obj = v as Record<string, unknown>;
+    const out: Record<string, unknown> = {};
+    for (const [k, val] of Object.entries(obj)) {
+      if (VOLATILE_KEYS.has(k)) continue;
+      if (ID_KEY.test(k)) {
+        out[k] = "<ID>";
+        continue;
+      }
+      out[k] = fuzzifyDeep(val);
+    }
+    return out;
+  }
+  if (typeof v === "string") {
+    if (ISO_TIMESTAMP.test(v)) return "<TIMESTAMP>";
+    if (UUID.test(v)) return "<UUID>";
+  }
+  return v;
+}
+
+export function fuzzyMatch(a: JsonRpcMessage, b: JsonRpcMessage): boolean {
+  if (methodOf(a) !== methodOf(b)) return false;
+  return (
+    JSON.stringify(canonical(fuzzifyDeep(paramsOf(a)))) ===
+    JSON.stringify(canonical(fuzzifyDeep(paramsOf(b))))
+  );
+}
+
 export interface MatchResult {
   idx: number;
   strategy: MatchStrategy;
@@ -98,6 +145,12 @@ export function findMatch(
     const p = pairs[i];
     if (p && normalizedMatch(request, p.request)) {
       return { idx: i, strategy: "normalized" };
+    }
+  }
+  for (let i = 0; i < pairs.length; i++) {
+    const p = pairs[i];
+    if (p && fuzzyMatch(request, p.request)) {
+      return { idx: i, strategy: "fuzzy" };
     }
   }
   return null;
