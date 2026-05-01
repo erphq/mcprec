@@ -12,7 +12,7 @@ const program = new Command();
 program
   .name("mcprec")
   .description("Record & replay any MCP server")
-  .version("0.1.0");
+  .version("0.5.0");
 
 program
   .command("record")

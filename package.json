@@ -1,6 +1,6 @@
 {
   "name": "mcprec",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "description": "Record & replay any MCP server. VCR for the Model Context Protocol.",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,6 +12,7 @@
     "dist",
     "README.md",
     "GOALS.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "scripts": {
