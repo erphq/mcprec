@@ -126,6 +126,31 @@ export function fuzzyMatch(a: JsonRpcMessage, b: JsonRpcMessage): boolean {
   );
 }
 
+/**
+ * Stable key for a request based on `method` + normalized `params`.
+ * Two requests share a key iff `normalizedMatch` would consider them
+ * equivalent. Used by `diffTranscripts` to align pairs across two
+ * recordings.
+ */
+export function requestKey(m: JsonRpcMessage): string {
+  return `${methodOf(m) ?? "<no-method>"}::${JSON.stringify(
+    canonical(stripVolatile(paramsOf(m))),
+  )}`;
+}
+
+/**
+ * Stable key for a response, using the same volatile-stripping +
+ * canonicalization used by `requestKey`. Produces the comparison
+ * payload `diffTranscripts` checks for drift.
+ */
+export function responseKey(m: JsonRpcMessage): string {
+  const r = m as { result?: unknown; error?: unknown };
+  if ("error" in m && r.error !== undefined) {
+    return `error::${JSON.stringify(canonical(stripVolatile(r.error)))}`;
+  }
+  return `result::${JSON.stringify(canonical(stripVolatile(r.result)))}`;
+}
+
 export interface MatchResult {
   idx: number;
   strategy: MatchStrategy;

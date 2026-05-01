@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { record } from "./record.js";
 import { replay } from "./replay.js";
 import { inspectTranscript } from "./inspect.js";
+import { diffTranscriptFiles, formatDiff } from "./diff.js";
 
 const program = new Command();
 
@@ -45,6 +46,23 @@ program
   .action(async (file: string) => {
     const out = await inspectTranscript(file);
     process.stdout.write(out + "\n");
+  });
+
+program
+  .command("diff <a> <b>")
+  .description(
+    "Compare two transcripts. Surfaces method/params pairs that exist in only one and (method, params) pairs whose responses diverge.",
+  )
+  .option("--format <fmt>", "output format: text | json", "text")
+  .action(async (a: string, b: string, opts: { format: string }) => {
+    const diff = await diffTranscriptFiles(a, b);
+    if (opts.format === "json") {
+      process.stdout.write(JSON.stringify(diff, null, 2) + "\n");
+    } else {
+      process.stdout.write(formatDiff(diff, a, b) + "\n");
+    }
+    const drift = diff.onlyInA.length + diff.onlyInB.length + diff.changed.length;
+    process.exit(drift > 0 ? 1 : 0);
   });
 
 program.parseAsync(process.argv).catch((err: unknown) => {

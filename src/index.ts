@@ -7,9 +7,21 @@ export {
   findMatch,
   isRequest,
   methodOf,
+  requestKey,
+  responseKey,
 } from "./match.js";
 export { redactDeep } from "./redact.js";
 export { inspectTranscript } from "./inspect.js";
+export {
+  diffTranscripts,
+  diffTranscriptFiles,
+  formatDiff,
+} from "./diff.js";
+export type {
+  TranscriptDiff,
+  DiffEntry,
+  ChangedEntry,
+} from "./diff.js";
 export type {
   Frame,
   Direction,
