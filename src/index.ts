@@ -24,6 +24,8 @@ export {
 } from "./diff.js";
 export { replayHttp } from "./http.js";
 export type { HttpReplayOptions, HttpReplayHandle } from "./http.js";
+export { recordHttp } from "./record_http.js";
+export type { RecordHttpOptions, RecordHttpHandle } from "./record_http.js";
 export type {
   TranscriptDiff,
   DiffEntry,

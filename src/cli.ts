@@ -5,6 +5,7 @@ import { replay } from "./replay.js";
 import { inspectTranscript } from "./inspect.js";
 import { diffTranscriptFiles, formatDiff } from "./diff.js";
 import { replayHttp } from "./http.js";
+import { recordHttp } from "./record_http.js";
 
 const program = new Command();
 
@@ -74,6 +75,55 @@ program
       // Keep alive until SIGINT.
       const stop = async (): Promise<void> => {
         await handle.close();
+        process.exit(0);
+      };
+      process.on("SIGINT", stop);
+      process.on("SIGTERM", stop);
+    },
+  );
+
+program
+  .command("record-http")
+  .description(
+    "Proxy an HTTP MCP endpoint, capturing every JSON-RPC frame (JSON or SSE) to a JSONL transcript",
+  )
+  .requiredOption("--out <file>", "transcript output path (JSONL)")
+  .requiredOption("--target <url>", "target MCP HTTP endpoint")
+  .option("--port <port>", "port to listen on (0 = random)", "8866")
+  .option("--host <host>", "address to bind to", "127.0.0.1")
+  .option("--path <path>", "URL path to proxy", "/mcp")
+  .option(
+    "--redact <patterns>",
+    "comma-separated key patterns to redact (e.g. 'authorization,*_token')",
+  )
+  .action(
+    async (opts: {
+      out: string;
+      target: string;
+      port: string;
+      host: string;
+      path: string;
+      redact?: string;
+    }) => {
+      const redact = opts.redact
+        ? opts.redact.split(",").map((s) => s.trim()).filter(Boolean)
+        : [];
+      const handle = await recordHttp({
+        out: opts.out,
+        target: opts.target,
+        port: Number(opts.port),
+        host: opts.host,
+        path: opts.path,
+        redact,
+      });
+      process.stderr.write(
+        `mcprec record-http: listening on http://${opts.host}:${handle.port}${opts.path} → ${opts.target}\n`,
+      );
+      const stop = async (): Promise<void> => {
+        await handle.close();
+        process.stderr.write(
+          `mcprec record-http: captured ${handle.framesCaptured()} frames to ${opts.out}\n`,
+        );
         process.exit(0);
       };
       process.on("SIGINT", stop);
