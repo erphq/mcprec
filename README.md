@@ -254,6 +254,7 @@ even if you never replay.
 - [x] v0.3 — `inspect` and `diff` commands
 - [x] v0.4 — HTTP transport replay (JSON request → JSON response)
 - [x] v0.4.1 — SSE streaming for HTTP replay (auto-detect multi-frame responses; `streaming: 'auto' \| 'off'`)
+- [x] v0.4.2 — HTTP record-mode proxy (`mcprec record-http --target`); transcripts byte-compatible with stdio recording
 - [x] v0.5 — pluggable matcher API (`UserMatcher` callback consulted before built-in tiers)
 - [ ] v1.0 — used in `erphq/neo` and `erphq/enterprise-skills` test suites
 
