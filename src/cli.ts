@@ -4,6 +4,7 @@ import { record } from "./record.js";
 import { replay } from "./replay.js";
 import { inspectTranscript } from "./inspect.js";
 import { diffTranscriptFiles, formatDiff } from "./diff.js";
+import { replayHttp } from "./http.js";
 
 const program = new Command();
 
@@ -47,6 +48,38 @@ program
     const out = await inspectTranscript(file);
     process.stdout.write(out + "\n");
   });
+
+program
+  .command("replay-http <file>")
+  .description(
+    "Serve a recorded transcript over HTTP. Single JSON request → single JSON response. SSE/streaming ships in v0.4.1.",
+  )
+  .option("--port <port>", "port to listen on (0 = random)", "8765")
+  .option("--host <host>", "address to bind to", "127.0.0.1")
+  .option("--path <path>", "URL path for the MCP endpoint", "/mcp")
+  .action(
+    async (
+      file: string,
+      opts: { port: string; host: string; path: string },
+    ) => {
+      const handle = await replayHttp({
+        file,
+        port: Number(opts.port),
+        host: opts.host,
+        path: opts.path,
+      });
+      process.stderr.write(
+        `mcprec replay-http: listening on http://${opts.host}:${handle.port}${opts.path}\n`,
+      );
+      // Keep alive until SIGINT.
+      const stop = async (): Promise<void> => {
+        await handle.close();
+        process.exit(0);
+      };
+      process.on("SIGINT", stop);
+      process.on("SIGTERM", stop);
+    },
+  );
 
 program
   .command("diff <a> <b>")

@@ -17,6 +17,8 @@ export {
   diffTranscriptFiles,
   formatDiff,
 } from "./diff.js";
+export { replayHttp } from "./http.js";
+export type { HttpReplayOptions, HttpReplayHandle } from "./http.js";
 export type {
   TranscriptDiff,
   DiffEntry,
