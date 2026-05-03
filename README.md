@@ -6,6 +6,8 @@
 
 **Capture stdio. Replay deterministically. Test agent tools without the network.**
 
+![tests](https://img.shields.io/badge/tests-80%20passing-yellowgreen)
+
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 [![status](https://img.shields.io/badge/status-pre--v0-orange.svg)](#roadmap)
 [![node](https://img.shields.io/badge/node-20%2B-green.svg)](#install)
