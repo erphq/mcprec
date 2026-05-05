@@ -1,4 +1,17 @@
 /**
+ * Key-name patterns applied automatically on every `record` run.
+ * Covers the most common bearer tokens, API keys, and auth headers.
+ * Users may supply additional patterns via `RecordOptions.redact`;
+ * these defaults are always merged in.
+ */
+export const DEFAULT_REDACT_PATTERNS: string[] = [
+  "authorization",
+  "*_token",
+  "*_key",
+  "*_secret",
+];
+
+/**
  * Replace values whose keys match any of the given patterns with
  * `<REDACTED>`. Patterns may use `*` as a wildcard; matching is
  * case-insensitive.

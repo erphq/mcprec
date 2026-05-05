@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createWriteStream } from "node:fs";
 import { lineFrames } from "./transport.js";
-import { redactDeep } from "./redact.js";
+import { redactDeep, DEFAULT_REDACT_PATTERNS } from "./redact.js";
 import type { Frame, JsonRpcMessage } from "./types.js";
 
 export interface RecordOptions {
@@ -23,7 +23,7 @@ export async function record(opts: RecordOptions): Promise<void> {
 
   const file = createWriteStream(opts.out, { flags: "w", encoding: "utf8" });
   const start = Date.now();
-  const redact = opts.redact ?? [];
+  const redact = [...DEFAULT_REDACT_PATTERNS, ...(opts.redact ?? [])];
 
   const append = (frame: Frame): void => {
     file.write(JSON.stringify(frame) + "\n");
@@ -69,7 +69,7 @@ function passthroughIn(
   childStdin.write(line + "\n");
   try {
     const msg = JSON.parse(line) as JsonRpcMessage;
-    const safe = redact.length > 0 ? (redactDeep(msg, redact) as JsonRpcMessage) : msg;
+    const safe = redactDeep(msg, redact) as JsonRpcMessage;
     append({ t: (Date.now() - start) / 1000, dir: "→", msg: safe });
   } catch {
     // not JSON - passed through, not recorded
@@ -85,7 +85,7 @@ function passthroughOut(
   process.stdout.write(line + "\n");
   try {
     const msg = JSON.parse(line) as JsonRpcMessage;
-    const safe = redact.length > 0 ? (redactDeep(msg, redact) as JsonRpcMessage) : msg;
+    const safe = redactDeep(msg, redact) as JsonRpcMessage;
     append({ t: (Date.now() - start) / 1000, dir: "←", msg: safe });
   } catch {
     // not JSON - passed through, not recorded
