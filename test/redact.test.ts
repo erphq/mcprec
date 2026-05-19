@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { redactDeep, DEFAULT_REDACT_PATTERNS } from "../src/redact.js";
+import { redactDeep, DEFAULT_REDACT_PATTERNS, redactValues, DEFAULT_REDACT_VALUE_PATTERNS } from "../src/redact.js";
 
 describe("redactDeep", () => {
   it("redacts top-level keys", () => {
@@ -97,5 +97,75 @@ describe("DEFAULT_REDACT_PATTERNS", () => {
     expect(
       redactDeep({ method: "tools/call", q: "hello" }, DEFAULT_REDACT_PATTERNS),
     ).toEqual({ method: "tools/call", q: "hello" });
+  });
+});
+
+const TEST_JWT =
+  "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA";
+const TEST_PEM =
+  "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASC\n-----END PRIVATE KEY-----";
+
+describe("redactValues", () => {
+  it("redacts a JWT-shaped string value", () => {
+    expect(redactValues({ bearer: TEST_JWT }, DEFAULT_REDACT_VALUE_PATTERNS)).toEqual({
+      bearer: "<REDACTED>",
+    });
+  });
+
+  it("redacts a PEM block value", () => {
+    expect(redactValues({ cert: TEST_PEM }, DEFAULT_REDACT_VALUE_PATTERNS)).toEqual({
+      cert: "<REDACTED>",
+    });
+  });
+
+  it("does not redact ordinary strings", () => {
+    expect(redactValues({ q: "hello world", n: 42 }, DEFAULT_REDACT_VALUE_PATTERNS)).toEqual({
+      q: "hello world",
+      n: 42,
+    });
+  });
+
+  it("redacts nested JWT values regardless of key name", () => {
+    expect(
+      redactValues({ params: { data: TEST_JWT } }, DEFAULT_REDACT_VALUE_PATTERNS),
+    ).toEqual({ params: { data: "<REDACTED>" } });
+  });
+
+  it("redacts JWT values inside arrays", () => {
+    expect(
+      redactValues([{ t: TEST_JWT }, { t: "plain" }], DEFAULT_REDACT_VALUE_PATTERNS),
+    ).toEqual([{ t: "<REDACTED>" }, { t: "plain" }]);
+  });
+
+  it("does nothing with empty patterns", () => {
+    expect(redactValues({ a: TEST_JWT }, [])).toEqual({ a: TEST_JWT });
+  });
+
+  it("does not redact a near-JWT (only two segments)", () => {
+    expect(
+      redactValues({ t: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0" }, DEFAULT_REDACT_VALUE_PATTERNS),
+    ).toEqual({ t: "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ1c2VyIn0" });
+  });
+
+  it("redacts both JWT and PEM values in the same object", () => {
+    expect(
+      redactValues({ jwt: TEST_JWT, pem: TEST_PEM, safe: "ok" }, DEFAULT_REDACT_VALUE_PATTERNS),
+    ).toEqual({ jwt: "<REDACTED>", pem: "<REDACTED>", safe: "ok" });
+  });
+});
+
+describe("DEFAULT_REDACT_VALUE_PATTERNS", () => {
+  it("matches a JWT string", () => {
+    expect(DEFAULT_REDACT_VALUE_PATTERNS.some((r) => r.test(TEST_JWT))).toBe(true);
+  });
+
+  it("matches a PEM block", () => {
+    expect(DEFAULT_REDACT_VALUE_PATTERNS.some((r) => r.test(TEST_PEM))).toBe(true);
+  });
+
+  it("does not match a plain bearer token prefix without JWT structure", () => {
+    expect(
+      DEFAULT_REDACT_VALUE_PATTERNS.every((r) => !r.test("Bearer ghp_abc123")),
+    ).toBe(true);
   });
 });
