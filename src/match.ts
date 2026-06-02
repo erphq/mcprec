@@ -127,6 +127,29 @@ export function fuzzyMatch(a: JsonRpcMessage, b: JsonRpcMessage): boolean {
   );
 }
 
+function paramsKeySet(params: unknown): string {
+  if (params == null) return "null";
+  if (Array.isArray(params)) return "array";
+  if (typeof params === "object") {
+    return JSON.stringify(Object.keys(params as Record<string, unknown>).sort());
+  }
+  return typeof params;
+}
+
+/**
+ * Last-resort tier before giving up: matches if `method` is identical
+ * and the set of top-level `params` keys is identical (values are
+ * ignored entirely). Useful when param values change across re-records
+ * but the call shape is stable.
+ */
+export function schemaLooseMatch(
+  a: JsonRpcMessage,
+  b: JsonRpcMessage,
+): boolean {
+  if (methodOf(a) !== methodOf(b)) return false;
+  return paramsKeySet(paramsOf(a)) === paramsKeySet(paramsOf(b));
+}
+
 /**
  * Stable key for a request based on `method` + normalized `params`.
  * Two requests share a key iff `normalizedMatch` would consider them
@@ -191,6 +214,12 @@ export function findMatch(
     const p = pairs[i];
     if (p && fuzzyMatch(request, p.request)) {
       return { idx: i, strategy: "fuzzy" };
+    }
+  }
+  for (let i = 0; i < pairs.length; i++) {
+    const p = pairs[i];
+    if (p && schemaLooseMatch(request, p.request)) {
+      return { idx: i, strategy: "schema-loose" };
     }
   }
   return null;
