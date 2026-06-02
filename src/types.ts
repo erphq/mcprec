@@ -35,7 +35,7 @@ export interface Frame {
   msg: JsonRpcMessage;
 }
 
-export type MatchStrategy = "exact" | "normalized" | "fuzzy" | "user";
+export type MatchStrategy = "exact" | "normalized" | "fuzzy" | "schema-loose" | "user";
 
 /**
  * User-supplied matcher. Returns `true` to claim a recorded pair as
