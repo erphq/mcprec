@@ -149,7 +149,7 @@ describe("inspectTranscript", () => {
     // just the timestamp shape.
     const frameLines = out
       .split("\n")
-      .filter((l) => /\d+\.\d{3}s/.test(l));
+      .filter((l) => /^\s*\d+\.\d{3}s\s/.test(l));
     expect(frameLines.length).toBe(2);
     for (const line of frameLines) {
       // The padded timestamp is 8 chars wide before the 's' suffix.

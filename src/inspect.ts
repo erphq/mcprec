@@ -10,9 +10,12 @@ export async function inspectTranscript(file: string): Promise<string> {
   }
   const pairs = pairFrames(frames);
   const methodCounts = countMethods(frames);
+  const duration = sessionDuration(frames);
   lines.push("");
   lines.push(
-    pc.dim(`${frames.length} frames · ${pairs.length} request/response pairs`),
+    pc.dim(
+      `${frames.length} frames · ${pairs.length} request/response pairs · ${duration}s`,
+    ),
   );
   lines.push(pc.dim("methods:"));
   for (const [method, count] of methodCounts) {
@@ -41,4 +44,11 @@ function countMethods(frames: Frame[]): [string, number][] {
     counts.set(m, (counts.get(m) ?? 0) + 1);
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
+}
+
+function sessionDuration(frames: Frame[]): string {
+  if (frames.length === 0) return "0.000";
+  const first = frames[0]!.t;
+  const last = frames[frames.length - 1]!.t;
+  return (last - first).toFixed(3);
 }
