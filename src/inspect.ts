@@ -39,9 +39,16 @@ function countMethods(frames: Frame[]): [string, number][] {
   const counts = new Map<string, number>();
   for (const f of frames) {
     if (f.dir !== "→") continue;
-    const m = (f.msg as { method?: string }).method;
-    if (!m) continue;
-    counts.set(m, (counts.get(m) ?? 0) + 1);
+    const msg = f.msg as { method?: string; params?: unknown };
+    if (!msg.method) continue;
+    let key = msg.method;
+    if (msg.method === "tools/call") {
+      const toolName = (msg.params as { name?: unknown } | undefined)?.name;
+      if (typeof toolName === "string" && toolName) {
+        key = `tools/call[${toolName}]`;
+      }
+    }
+    counts.set(key, (counts.get(key) ?? 0) + 1);
   }
   return [...counts.entries()].sort((a, b) => b[1] - a[1]);
 }
