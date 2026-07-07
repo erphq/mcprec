@@ -10,14 +10,22 @@ import type {
   UserMatcher,
 } from "./types.js";
 
-export async function loadTranscript(file: string): Promise<Frame[]> {
-  const raw = await readFile(file, "utf8");
+/**
+ * Parse a JSONL transcript string into an array of frames.
+ * Blank lines (including the trailing newline common in JSONL files)
+ * are skipped. Each non-blank line must be valid JSON representing a Frame.
+ */
+export function parseTranscript(content: string): Frame[] {
   const out: Frame[] = [];
-  for (const line of raw.split(/\r?\n/)) {
+  for (const line of content.split(/\r?\n/)) {
     if (!line.trim()) continue;
     out.push(JSON.parse(line) as Frame);
   }
   return out;
+}
+
+export async function loadTranscript(file: string): Promise<Frame[]> {
+  return parseTranscript(await readFile(file, "utf8"));
 }
 
 /**
