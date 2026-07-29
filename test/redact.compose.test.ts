@@ -36,9 +36,13 @@ describe("redactDeep + redactValues composition", () => {
     expect(redactAll(msg)).toEqual({ data: "<REDACTED>", safe: "ok" });
   });
 
-  it("does not double-redact: '<REDACTED>' does not re-trigger value patterns", () => {
-    // After key-name pass, github_token becomes "<REDACTED>" (a plain string).
-    // The JWT value-content pattern must not match that placeholder.
+  it("does not double-redact: value patterns do not match the placeholder string", () => {
+    // The placeholder itself must not satisfy any value-content pattern,
+    // otherwise a key-matched field would be re-redacted by the value pass.
+    // Assert directly on the patterns, then verify composition is stable.
+    expect(
+      DEFAULT_REDACT_VALUE_PATTERNS.every((r) => !r.test("<REDACTED>")),
+    ).toBe(true);
     const msg = { github_token: TEST_JWT };
     expect(redactAll(msg)).toEqual({ github_token: "<REDACTED>" });
   });
