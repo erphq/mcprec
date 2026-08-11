@@ -2,6 +2,33 @@ import pc from "picocolors";
 import { loadTranscript, pairFrames } from "./replay.js";
 import type { Frame, JsonRpcRequest } from "./types.js";
 
+export interface TranscriptStats {
+  frameCount: number;
+  pairCount: number;
+  durationSeconds: number;
+  methods: Record<string, number>;
+}
+
+/**
+ * Return structured stats for a parsed transcript: frame and pair
+ * counts, wall-clock duration, and a per-method call tally.
+ *
+ * tools/call frames are broken down by tool name, e.g.
+ * "tools/call[search_issues]", matching the grouping used by
+ * `inspectTranscript`.
+ */
+export function transcriptStats(frames: Frame[]): TranscriptStats {
+  const pairs = pairFrames(frames);
+  const first = frames[0]?.t ?? 0;
+  const last = frames[frames.length - 1]?.t ?? 0;
+  return {
+    frameCount: frames.length,
+    pairCount: pairs.length,
+    durationSeconds: last - first,
+    methods: Object.fromEntries(countMethods(frames)),
+  };
+}
+
 export async function inspectTranscript(file: string): Promise<string> {
   const frames = await loadTranscript(file);
   const lines: string[] = [];
