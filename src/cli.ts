@@ -45,8 +45,12 @@ program
 program
   .command("inspect <file>")
   .description("Pretty-print a transcript")
-  .action(async (file: string) => {
-    const out = await inspectTranscript(file);
+  .option(
+    "--filter <method>",
+    "only show frames whose method key contains this substring (e.g. 'tools/call', 'tools/call[search_issues]')",
+  )
+  .action(async (file: string, opts: { filter?: string }) => {
+    const out = await inspectTranscript(file, { filter: opts.filter });
     process.stdout.write(out + "\n");
   });
 
