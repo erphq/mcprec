@@ -29,10 +29,58 @@ export function transcriptStats(frames: Frame[]): TranscriptStats {
   };
 }
 
-export async function inspectTranscript(file: string): Promise<string> {
+export interface InspectOptions {
+  /** Substring filter applied to the method key of each request frame.
+   *  tools/call frames match against "tools/call[<name>]". When set,
+   *  only matching request frames and their paired response frames are
+   *  shown in the timeline; the summary footer always covers the full
+   *  transcript. */
+  filter?: string;
+}
+
+/** Return the display key for a request frame (method, or tools/call[name]). */
+function frameMethodKey(f: Frame): string | undefined {
+  if (f.dir !== "→") return undefined;
+  const msg = f.msg as { method?: string; params?: unknown };
+  if (!msg.method) return undefined;
+  if (msg.method === "tools/call") {
+    const toolName = (msg.params as { name?: unknown } | undefined)?.name;
+    if (typeof toolName === "string" && toolName) {
+      return `tools/call[${toolName}]`;
+    }
+  }
+  return msg.method;
+}
+
+export async function inspectTranscript(
+  file: string,
+  opts: InspectOptions = {},
+): Promise<string> {
   const frames = await loadTranscript(file);
   const lines: string[] = [];
-  for (const f of frames) {
+
+  const { filter } = opts;
+  let displayFrames: Frame[];
+  if (filter) {
+    const matchedIds = new Set<string | number>();
+    for (const f of frames) {
+      const key = frameMethodKey(f);
+      if (key && key.includes(filter)) {
+        const msg = f.msg as { id?: unknown };
+        if (msg.id !== undefined) matchedIds.add(msg.id as string | number);
+      }
+    }
+    displayFrames = frames.filter((f) => {
+      const key = frameMethodKey(f);
+      if (key !== undefined) return key.includes(filter);
+      const msg = f.msg as { id?: unknown };
+      return msg.id !== undefined && matchedIds.has(msg.id as string | number);
+    });
+  } else {
+    displayFrames = frames;
+  }
+
+  for (const f of displayFrames) {
     lines.push(formatFrame(f));
   }
   const pairs = pairFrames(frames);
@@ -44,6 +92,9 @@ export async function inspectTranscript(file: string): Promise<string> {
       `${frames.length} frames · ${pairs.length} request/response pairs · ${duration}s`,
     ),
   );
+  if (filter) {
+    lines.push(pc.dim(`filter: ${filter} (${displayFrames.length} frames shown)`));
+  }
   lines.push(pc.dim("methods:"));
   for (const [method, count] of methodCounts) {
     lines.push(pc.dim(`  ${method}: ${count}`));
