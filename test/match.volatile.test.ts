@@ -118,4 +118,43 @@ describe("normalizedMatch: volatile key stripping", () => {
     const b = req(2, "ping", { traceId: "t9", requestId: "r9" });
     expect(normalizedMatch(a, b)).toBe(true);
   });
+
+  it("strips 'spanId' so differing values still match", () => {
+    const a = req(1, "tools/call", { name: "search", spanId: "span-aaa" });
+    const b = req(2, "tools/call", { name: "search", spanId: "span-zzz" });
+    expect(exactMatch(a, b)).toBe(false);
+    expect(normalizedMatch(a, b)).toBe(true);
+  });
+
+  it("strips 'correlationId' so differing values still match", () => {
+    const a = req(1, "list_prs", { repo: "mcprec", correlationId: "corr-111" });
+    const b = req(2, "list_prs", { repo: "mcprec", correlationId: "corr-999" });
+    expect(exactMatch(a, b)).toBe(false);
+    expect(normalizedMatch(a, b)).toBe(true);
+  });
+
+  it("strips spanId and correlationId alongside other volatile keys", () => {
+    const a = req(1, "search", {
+      q: "is:open",
+      spanId: "s1",
+      correlationId: "c1",
+      traceId: "t1",
+      requestId: "r1",
+    });
+    const b = req(2, "search", {
+      q: "is:open",
+      spanId: "s9",
+      correlationId: "c9",
+      traceId: "t9",
+      requestId: "r9",
+    });
+    expect(exactMatch(a, b)).toBe(false);
+    expect(normalizedMatch(a, b)).toBe(true);
+  });
+
+  it("does not strip 'span' or 'correlation' (not exact key matches)", () => {
+    const a = req(1, "x", { span: "s1", correlation: "c1" });
+    const b = req(2, "x", { span: "s9", correlation: "c9" });
+    expect(normalizedMatch(a, b)).toBe(false);
+  });
 });

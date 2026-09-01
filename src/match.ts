@@ -44,6 +44,8 @@ const VOLATILE_KEYS = new Set([
   "updatedAt",
   "requestId",
   "traceId",
+  "spanId",
+  "correlationId",
 ]);
 
 function stripVolatile(v: unknown): unknown {
