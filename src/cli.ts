@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { record } from "./record.js";
-import { replay } from "./replay.js";
-import { inspectTranscript } from "./inspect.js";
+import { replay, loadTranscript } from "./replay.js";
+import { inspectTranscript, transcriptStats } from "./inspect.js";
 import { diffTranscriptFiles, formatDiff } from "./diff.js";
 import { replayHttp } from "./http.js";
 import { recordHttp } from "./record_http.js";
@@ -49,7 +49,13 @@ program
     "--filter <method>",
     "only show frames whose method key contains this substring (e.g. 'tools/call', 'tools/call[search_issues]')",
   )
-  .action(async (file: string, opts: { filter?: string }) => {
+  .option("--json", "output transcript stats as machine-readable JSON instead of colored text")
+  .action(async (file: string, opts: { filter?: string; json?: boolean }) => {
+    if (opts.json) {
+      const frames = await loadTranscript(file);
+      process.stdout.write(JSON.stringify(transcriptStats(frames), null, 2) + "\n");
+      return;
+    }
     const out = await inspectTranscript(file, { filter: opts.filter });
     process.stdout.write(out + "\n");
   });
